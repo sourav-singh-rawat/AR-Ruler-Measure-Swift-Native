@@ -15,6 +15,8 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     var dotNodes = [SCNNode]()
     
+    var textNode = SCNNode()
+    
     //MARK: - Life Cycle Methods
     
     override func viewDidLoad() {
@@ -55,6 +57,18 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 //    }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        
+        if dotNodes.count >= 2 {
+            
+            for dot in dotNodes {
+                dot.removeFromParentNode()
+            }
+            
+            dotNodes = [SCNNode]()
+            
+            textNode.removeFromParentNode()
+        }
+        
         guard let touch = touches.first else {return}
         
         let touchLocation = touch.location(in: sceneView)
@@ -109,11 +123,11 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         let textGeometry = SCNText(string: text, extrusionDepth: 1.0)
         textGeometry.firstMaterial?.diffuse.contents = UIColor.red
         
-        let node = SCNNode(geometry: textGeometry)
-        node.position = SCNVector3(position.x, position.y+0.01, position.z-0.1)
-        node.scale = SCNVector3(0.01,0.01,0.01)
+        textNode = SCNNode(geometry: textGeometry)
+        textNode.position = SCNVector3(position.x, position.y+0.01, position.z-0.1)
+        textNode.scale = SCNVector3(0.01,0.01,0.01)
         
-        sceneView.scene.rootNode.addChildNode(node)
+        sceneView.scene.rootNode.addChildNode(textNode)
     }
     
     //MARK: - Plane Methods
