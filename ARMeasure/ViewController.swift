@@ -10,12 +10,14 @@ import SceneKit
 import ARKit
 
 class ViewController: UIViewController, ARSCNViewDelegate {
-
+    
     @IBOutlet var sceneView: ARSCNView!
     
     var dotNodes = [SCNNode]()
     
     var textNode = SCNNode()
+    
+    var lineNode = SCNNode()
     
     //MARK: - Life Cycle Methods
     
@@ -33,7 +35,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         // Create a session configuration
         let configuration = ARWorldTrackingConfiguration()
-
+        
         // Run the view's session
         sceneView.session.run(configuration)
     }
@@ -47,26 +49,19 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     //MARK: - ARSCNViewDelegate methods
     
-//    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-//        print("did add")
-//        guard let planeAnchor = anchor as? ARPlaneAnchor else {return}
-//
-//        let planeNode = createPlane(withPlaneAnchor: planeAnchor)
-//
-//        node.addChildNode(planeNode)
-//    }
+    //    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+    //        print("did add")
+    //        guard let planeAnchor = anchor as? ARPlaneAnchor else {return}
+    //
+    //        let planeNode = createPlane(withPlaneAnchor: planeAnchor)
+    //
+    //        node.addChildNode(planeNode)
+    //    }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         
         if dotNodes.count >= 2 {
-            
-            for dot in dotNodes {
-                dot.removeFromParentNode()
-            }
-            
-            dotNodes = [SCNNode]()
-            
-            textNode.removeFromParentNode()
+            clearSceneView()
         }
         
         guard let touch = touches.first else {return}
@@ -116,7 +111,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         createText(text: "\(abs(distance)*100)",atPosition: end.position)
         
-//        createPlaneLine(start: start, end: end)
+        createPlaneLine(startPosition: start.position, endPosition: end.position)
     }
     
     func createText(text: String,atPosition position:SCNVector3){
@@ -132,19 +127,29 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     //MARK: - Plane Methods
     
-    func createPlaneLine(start: SCNNode,end: SCNNode) {
-        let plane = SCNPlane(width: CGFloat(end.position.x - start.position.x),height: 0.001)
+    func createPlaneLine(startPosition: SCNVector3,endPosition: SCNVector3) {
+        let indices: [Int32] = [0, 1]
         
-        let material = SCNMaterial()
-        material.diffuse.contents = UIColor.red
+        let source = SCNGeometrySource(vertices: [startPosition, endPosition])
+        let element = SCNGeometryElement(indices: indices, primitiveType: .line)
         
-        plane.materials = [material]
+        let line = SCNGeometry(sources: [source], elements: [element])
+        line.firstMaterial?.diffuse.contents = UIColor.red
         
-        let planeNode = SCNNode()
-        planeNode.position = SCNVector3(end.position.x, 0, start.position.x)
-        planeNode.transform = SCNMatrix4MakeRotation(-Float.pi/2, 1, 0, 0)
-        planeNode.geometry = plane
+        lineNode = SCNNode(geometry: line)
         
-        sceneView.scene.rootNode.addChildNode(planeNode)
+        sceneView.scene.rootNode.addChildNode(lineNode)
+    }
+    
+    func clearSceneView() {
+        for dot in dotNodes {
+            dot.removeFromParentNode()
+        }
+        
+        dotNodes = [SCNNode]()
+        
+        textNode.removeFromParentNode()
+        
+        lineNode.removeFromParentNode()
     }
 }
